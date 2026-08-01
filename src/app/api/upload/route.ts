@@ -1,39 +1,60 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
+import { supabaseAdmin } from "@/lib/supabase-admin";
 
-const MAX_BYTES = 40 * 1024 * 1024; // 40 MB — generous for cinematic video files
+const MAX_BYTES = 40 * 1024 * 1024;
 
-/** Admin upload — stores files under /public/uploads and returns public URLs. */
 export async function POST(req: Request) {
   const user = await requireAdmin();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const form = await req.formData();
-  const files = form
-    .getAll("files")
-    .filter((f): f is File => f instanceof File && f.size > 0);
-  if (files.length === 0) {
-    return NextResponse.json({ error: "No files received." }, { status: 400 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const dir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(dir, { recursive: true });
+  const form = await req.formData();
+
+  const files = form
+    .getAll("files")
+    .filter((f): f is File => f instanceof File);
+
+  if (!files.length) {
+    return NextResponse.json({ error: "No files" }, { status: 400 });
+  }
 
   const urls: string[] = [];
+
   for (const file of files) {
     if (file.size > MAX_BYTES) {
       return NextResponse.json(
-        { error: `"${file.name}" exceeds the 40 MB limit.` },
-        { status: 413 },
+        { error: `${file.name} is too large` },
+        { status: 413 }
       );
     }
-    const ext = (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const name = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext || "bin"}`;
-    const bytes = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(dir, name), bytes);
-    urls.push(`/uploads/${name}`);
+
+    const ext = file.name.split(".").pop();
+    const filename = `${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2)}.${ext}`;
+
+    const { error } = await supabaseAdmin.storage
+      .from("uploads")
+      .upload(filename, await file.arrayBuffer(), {
+        contentType: file.type,
+        upsert: false,
+      });
+
+    if (error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    const { data } = supabaseAdmin.storage
+      .from("uploads")
+      .getPublicUrl(filename);
+
+    urls.push(data.publicUrl);
   }
 
   return NextResponse.json({ urls });
