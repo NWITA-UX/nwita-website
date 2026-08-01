@@ -54,8 +54,15 @@ export async function POST(req: Request) {
       .from("uploads")
       .getPublicUrl(filename);
 
-    urls.push(data.publicUrl);
-  }
+urls.push(data.publicUrl);
+
+await supabaseAdmin
+  .from("media_library")
+  .insert({
+    type: file.type.startsWith("video") ? "video" : "image",
+    url: data.publicUrl,
+    title: file.name,
+  });  }
 
   return NextResponse.json({ urls });
 }
