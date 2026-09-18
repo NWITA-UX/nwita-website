@@ -29,6 +29,7 @@ export const metadata: Metadata = {
     "NWITA is a luxury clothing house crafting timeless monochrome essentials. Numbered pieces, cinematic cuts. Wear the Feeling.",
   icons: {
   icon: "/icon.png",
+  apple: "/apple-icon.png",
 },
   openGraph: {
     siteName: "NWITA",
