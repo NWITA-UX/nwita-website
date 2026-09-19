@@ -82,8 +82,6 @@ export default function AdminLoginPage() {
 
       <div className="mt-6 w-full max-w-sm border border-dashed border-line px-5 py-4 text-center">
         <p className="text-[11px] font-light leading-relaxed text-fog">
-          Demo access — <span className="text-bone/85">admin@nwita.com</span> ·{" "}
-          <span className="text-bone/85">wearthefeeling</span>
         </p>
       </div>
     </div>

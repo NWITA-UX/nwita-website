@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Italiana, Jost } from "next/font/google";
 import type { ReactNode } from "react";
+import PushRegistration from "./PushRegistration";
 import "./globals.css";
 
 /** Display face — the NWITA wordmark voice. */
@@ -25,12 +26,13 @@ export const metadata: Metadata = {
     default: "NWITA — Wear the Feeling",
     template: "%s — NWITA",
   },
-  description:
+   description:
     "NWITA is a luxury clothing house crafting timeless monochrome essentials. Numbered pieces, cinematic cuts. Wear the Feeling.",
+  manifest: "/manifest.json",
   icons: {
-  icon: "/icon.png",
-  apple: "/apple-icon.png",
-},
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     siteName: "NWITA",
     title: "NWITA — Wear the Feeling",
@@ -43,7 +45,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${italiana.variable} ${jost.variable}`}>
-      <body className="grain min-h-screen overflow-x-clip">{children}</body>
+     <body className="grain min-h-screen overflow-x-clip">
+  <PushRegistration />
+  {children}
+</body>
     </html>
   );
 }
